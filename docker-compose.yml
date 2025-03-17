@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: mi-contenedor-laravel
+    restart: always
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - mi-red-laravel
+    volumes:
+      - .:/app
+      - ./storage:/app/storage
+      - ./bootstrap/cache:/app/bootstrap/cache
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=laravel
+      - DB_USERNAME=laravel
+      - DB_PASSWORD=secret
+    command: sh -c "composer install --no-dev --optimize-autoloader && php artisan key:generate && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
+
+  db:
+    image: mysql:8.0
+    container_name: mi-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    networks:
+      - mi-red-laravel
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+networks:
+  mi-red-laravel:
+
+volumes:
+  mysql-data:
